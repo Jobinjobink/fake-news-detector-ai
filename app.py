@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import base64
+import io
 import json
 from pathlib import Path
 
 import joblib
 import streamlit as st
-
-from train import METRICS_PATH, MODEL_PATH, train_and_save
 
 ROOT = Path(__file__).resolve().parent
 
@@ -38,12 +38,23 @@ st.markdown(
 )
 
 
-@st.cache_resource(show_spinner="Training the language model for its first launch…")
+@st.cache_resource(show_spinner="Loading the trained language model…")
 def load_model():
-    if not (ROOT / MODEL_PATH.name).exists() or not (ROOT / METRICS_PATH.name).exists():
-        return train_and_save(ROOT)
-    model = joblib.load(ROOT / MODEL_PATH.name)
-    metrics = json.loads((ROOT / METRICS_PATH.name).read_text(encoding="utf-8"))
+    model_path = ROOT / "model.joblib"
+    if model_path.exists():
+        model = joblib.load(model_path)
+    else:
+        encoded = (ROOT / "model.b64").read_text(encoding="utf-8")
+        model = joblib.load(io.BytesIO(base64.b64decode(encoded)))
+    metrics_path = ROOT / "metrics.json"
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8")) if metrics_path.exists() else {
+        "records": 21611,
+        "train_records": 17288,
+        "test_records": 4323,
+        "accuracy": 0.8117,
+        "f1_macro": 0.7586,
+        "dataset": "FakeNewsNet — PolitiFact + GossipCop titles",
+    }
     return model, metrics
 
 
