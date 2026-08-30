@@ -1,0 +1,8 @@
+__pycache__/
+.pytest_cache/
+.venv/
+*.joblib
+metrics.json
+news.csv
+politifact_*.csv
+gossipcop_*.csv
